@@ -4,7 +4,8 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
+#include <limits.h>
+#include <fcntl.h>
 #include <linux/stat.h>
 #include "fifoserver.h"
 #include "fakeled.h"
@@ -18,46 +19,58 @@ FifoServer::FifoServer(Fakeled *fakeled)
 
     }
     /* Create the FIFO if it does not exist */
-    umask(0);
-    mknod(fifo, S_IFIFO|0666, 0);
+    mkfifo(fifo_server, 0777);
 }
 
 FifoServer::~FifoServer()
 {
-    remove(fifo); // delete the fifo file
+    remove(fifo_server); // delete the fifo file
 }
 
 int FifoServer::exec()
 {
-    FILE *fp;
     const size_t size = 16;
     char buf[size];
-
+    
     fprintf(stderr, "Fifo server running...\n");
 
-    // try to open my fifo file. it may already exist from
+    // try to open fifo file. it may already exist from
     // an earlier aborted execution
-    fp = fopen(fifo, "r");
-
+    int server_fifo_fd = open(fifo_server, O_RDONLY);
+ 
     // if the fopen failed, the fifo file does not exist
-    if(NULL == fp)
+    if(-1 == server_fifo_fd)
     {
-	fprintf(stderr, "fopen() failed\n");	
+	fprintf(stderr, "Open server fifo failed\n");
+	return -1;
     }
     printf("Receiving...\n");
     
     FakeledParser parser(_fakeled);
     std::string answer;
+    char client_fifo[64];
+ 
     while(true)
-    {
-	fgets(buf, size, fp);
-	parser.parse(buf, answer);
-	printf("%s", buf);
-//	fread(fifo, answer.c_str());
-	fflush(stdout);
+    {	
+	if(read(server_fifo_fd, buf, sizeof(buf)) > 0)
+	{
+	    parser.parse(buf, answer);
+
+	    printf("%s - %s", buf, answer.c_str());
+//	sprintf(client_fifo, fifo_client, fifoData.client_pid);
+	
+	    int client_fifo_fd = open(client_fifo, O_WRONLY);
+	    if(client_fifo_fd != -1)
+	    {
+		write(client_fifo_fd, answer.c_str(), answer.length());
+		close(client_fifo_fd);
+	    }
+//	    fread(fifo, answer.c_str());
+	    fflush(stdout);
+	}
     }
 
-    fclose(fp); // close the fifo file
+    close(server_fifo_fd); // close the fifo file
     fprintf(stderr, "Fifo server terminating.\n");
     return 0;
 }

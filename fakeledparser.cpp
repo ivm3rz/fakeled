@@ -21,7 +21,7 @@ void FakeledParser::PrintMessage(const std::string &message)
 
 bool FakeledParser::parse(const char* buffer, std::string &answer)
 {
-    if(std::strcmp(buffer, "set-led-state") == 0)
+    if(std::strcmp(buffer, "set-led-state\n") == 0)
     {
 	const std::string str = buffer + 13;
 	bool state = (str == "on") ? true : false;
@@ -29,45 +29,64 @@ bool FakeledParser::parse(const char* buffer, std::string &answer)
 	
 	return true;
     }
-    else if(std::strcmp(buffer, "get-led-state") == 0)
+    else if(std::strcmp(buffer, "get-led-state\n") == 0)
     {
 	bool state = false;
-	answer = _fakeled->getState(state) ? "OK " : "FAILED\n";
-	if(state)
+	bool ret = _fakeled->getState(state);
+	answer = ret ? "OK " : "FAILED\n";
+	if(ret)
 	{
-	    answer += "on\n";
-	}
-	else 
-	{
-	    answer += "off\n";
+	    if(state)
+	    {
+		answer += "on\n";
+	    }
+	    else 
+	    {
+		answer += "off\n";
+	    }
 	}
 	return true;
     }
-    else if(std::strcmp(buffer, "set-led-color") == 0)
+    else if(std::strcmp(buffer, "set-led-color\n") == 0)
     {
 	const std::string color = buffer + 13;
 	answer = _fakeled->setColor(color) ? "OK\n" : "FAILED\n";
 	
 	return true;
     }
-    else if(std::strcmp(buffer, "get-led-color") == 0)
+    else if(std::strcmp(buffer, "get-led-color\n") == 0)
     {
 	std::string color = "";
-	answer = _fakeled->getColor(color) ? "OK " : "FAILED\n";
-	answer += color;
-	
+	bool ret = _fakeled->getColor(color);
+	answer = ret ? "OK " : "FAILED\n";
+	if(ret)
+	{
+	    answer += color;
+	}
 	return true;
     }
-    else if(std::strcmp(buffer, "set-led-rate") == 0)
+    else if(std::strcmp(buffer, "set-led-rate\n") == 0)
     {
 	const std::string str = buffer + 13;
 	float rate = atof(str.c_str());
 	answer = _fakeled->setRate(rate) ? "OK\n" : "FAILED\n";
 	return true;
     }
+    else if(std::strcmp(buffer, "get-led-rate\n") == 0)
+    {
+	float rate = 0.0;
+	bool ret = _fakeled->getRate(rate);
+	char buf[8];
+	answer = ret ? "OK " : "FAILED\n";
+	if(ret)
+	{
+	    sprintf(buf, answer.c_str(), rate);
+	}
+	return true;
+    }
     else 
     {
-	answer = "Wrong command format\n";
+	answer = "Wrong command format\nPlease repeat input";
     }
     return true;
 }

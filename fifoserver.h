@@ -3,7 +3,14 @@
 
 class Fakeled;
 
-const char* const fifo = "fakeled_fifo";
+const char* const fifo_server = "fakeled_fifoserver";
+const char* const fifo_client = "fakeled_fifoclient";
+
+struct FifoData
+{
+    pid_t client_pid;
+    char data[16];
+};
 
 class FifoServer
 {
