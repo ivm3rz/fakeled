@@ -1,10 +1,9 @@
 #include "fakeledparser.h"
 #include "fakeled.h"
-
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <string>
 #include <cstring>
 #include <cstdlib> // EXIT_FAILURE
 
@@ -21,11 +20,11 @@ void FakeledParser::PrintMessage(const std::string &message)
 
 bool FakeledParser::parse(const char* buffer, std::string &answer)
 {
-    if(std::strcmp(buffer, "set-led-state") == 0)
+    if(std::strncmp(buffer, "set-led-state", 13) == 0)
     {
-	const char *str = buffer + 14;
-	bool state = (std::strcmp(str, "on") == 0) ? true : false;
-	if(_fakeled->setState(state))
+	const std::string str = buffer + 14;
+	bool state = (std::strcmp(str.c_str(), "on") == 0) ? true : false;
+	if(_fakeled->setState(state) == 0)
 	{
 	    answer = "OK\n";
 	}
@@ -53,10 +52,11 @@ bool FakeledParser::parse(const char* buffer, std::string &answer)
 	}
 	return true;
     }
-    else if(std::strcmp(buffer, "set-led-color") == 0)
+    else if(std::strncmp(buffer, "set-led-color", 13) == 0)
     {
-	const std::string color = buffer + 13;
-	answer = _fakeled->setColor(color) ? "OK\n" : "FAILED\n";
+	std::string str = buffer + 14;
+	str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
+	answer = (_fakeled->setColor(str) == 0) ? "OK\n" : "FAILED\n";
 	
 	return true;
     }
@@ -72,23 +72,23 @@ bool FakeledParser::parse(const char* buffer, std::string &answer)
 	}
 	return true;
     }
-    else if(std::strcmp(buffer, "set-led-rate") == 0)
+    else if(std::strncmp(buffer, "set-led-rate", 12) == 0)
     {
 	const std::string str = buffer + 13;
 	float rate = atof(str.c_str());
-	answer = _fakeled->setRate(rate) ? "OK\n" : "FAILED\n";
+	answer = (_fakeled->setRate(rate) == 0) ? "OK\n" : "FAILED\n";
 	return true;
     }
     else if(std::strcmp(buffer, "get-led-rate\n") == 0)
     {
 	float rate = 0.0;
 	bool ret = _fakeled->getRate(rate);
-	std::ostringstream oss;
-	oss << rate;
 	answer = ret ? "OK " : "FAILED\n";
 	if(ret)
 	{
-	    answer += oss.str();
+	    char buffer[16];
+	    sprintf(buffer, "%.1f", rate);
+	    answer += buffer;
 	    answer += '\n';
 	}
 	return true;

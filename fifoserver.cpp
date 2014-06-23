@@ -58,23 +58,16 @@ int FifoServer::exec()
 	{
 	    answer.clear();
 	    
-	    if(parser.parse(buf, answer))
+	    parser.parse(buf, answer);
+	    printf("Request: %sAnswer: %s\n", buf, answer.c_str());
+	    int client_fifo_fd = open(fifo_client, O_WRONLY);
+	    if(client_fifo_fd != -1)
 	    {
-		printf("Request: %sAnswer:%s\n", buf, answer.c_str());
-	
-		int client_fifo_fd = open(fifo_client, O_WRONLY);
-		if(client_fifo_fd != -1)
-		{
-		    write(client_fifo_fd, answer.c_str(), answer.length() + 1);
-		    close(client_fifo_fd);
-		}
+		write(client_fifo_fd, answer.c_str(), answer.length() + 1);
+		close(client_fifo_fd);
 	    }
-	    else
-	    {
-		printf("%s", answer.c_str());
-	    }
-	    fflush(stdout);
 	}
+	fflush(stdout);
     }
 
     close(server_fifo_fd); // close the fifo file

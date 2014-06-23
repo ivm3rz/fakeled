@@ -7,7 +7,7 @@ class Fakeled
 {
 public:
     Fakeled();
-    Fakeled(bool state, std::string color, float rate);
+    Fakeled(bool state, const std::string &color, float rate);
     ~Fakeled();
     
     int setState(bool);
@@ -18,7 +18,7 @@ public:
     inline bool getRate(float& rate) const
     { rate = _rate; return true; }
     
-    int setColor(std::string);
+    int setColor(const std::string &);
     inline bool getColor(std::string& color)
     { color = _color; return true; }
     

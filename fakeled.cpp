@@ -1,5 +1,5 @@
 #include "fakeled.h"
-#include <cstdlib>
+#include <stdlib.h>
 #include <cstring>
 
 Fakeled::Fakeled()
@@ -8,7 +8,7 @@ Fakeled::Fakeled()
     
 }
 
-Fakeled::Fakeled(bool state, std::string color, float rate)
+Fakeled::Fakeled(bool state, const std::string &color, float rate)
 {
     setState(state);
     setColor(color);
@@ -26,7 +26,7 @@ int Fakeled::setState(bool state)
     return 0;
 }
 
-int Fakeled::setColor(std::string color)
+int Fakeled::setColor(const std::string &color)
 {
     if((std::strcmp(color.c_str(), "green") == 0) ||
 	(std::strcmp(color.c_str(), "blue") == 0) ||
