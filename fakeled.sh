@@ -17,20 +17,18 @@ do
     echo "Enter command: "
     read input
     
-    if [ "$input" = 'quit' ]
-    then
+    if [ "$input" = 'quit' ]; then
 	exit 0
-    elif [ "$input" = 'help' ]
-    then 
+    elif [ "$input" = 'help' ]; then 
 	usage
     fi
     
     echo "$input" >$fifo_server
+    echo "Request: "$input
     
-    cat $fifo_client
- #   if read output <$fifo_client; then
- #       echo $output
- #   fi
+    if read output <$fifo_client; then
+        echo "Answer: "$output
+    fi
     
 done
 

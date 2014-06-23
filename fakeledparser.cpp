@@ -21,12 +21,18 @@ void FakeledParser::PrintMessage(const std::string &message)
 
 bool FakeledParser::parse(const char* buffer, std::string &answer)
 {
-    if(std::strcmp(buffer, "set-led-state\n") == 0)
+    if(std::strcmp(buffer, "set-led-state") == 0)
     {
-	const std::string str = buffer + 13;
-	bool state = (str == "on") ? true : false;
-	answer = _fakeled->setState(state) ? "OK\n" : "FAILED\n";
-	
+	const char *str = buffer + 14;
+	bool state = (std::strcmp(str, "on") == 0) ? true : false;
+	if(_fakeled->setState(state))
+	{
+	    answer = "OK\n";
+	}
+	else
+	{
+	    answer = "FAILED\n";
+	}
 	return true;
     }
     else if(std::strcmp(buffer, "get-led-state\n") == 0)
@@ -47,7 +53,7 @@ bool FakeledParser::parse(const char* buffer, std::string &answer)
 	}
 	return true;
     }
-    else if(std::strcmp(buffer, "set-led-color\n") == 0)
+    else if(std::strcmp(buffer, "set-led-color") == 0)
     {
 	const std::string color = buffer + 13;
 	answer = _fakeled->setColor(color) ? "OK\n" : "FAILED\n";
@@ -62,10 +68,11 @@ bool FakeledParser::parse(const char* buffer, std::string &answer)
 	if(ret)
 	{
 	    answer += color;
+	    answer += '\n';
 	}
 	return true;
     }
-    else if(std::strcmp(buffer, "set-led-rate\n") == 0)
+    else if(std::strcmp(buffer, "set-led-rate") == 0)
     {
 	const std::string str = buffer + 13;
 	float rate = atof(str.c_str());
@@ -76,17 +83,20 @@ bool FakeledParser::parse(const char* buffer, std::string &answer)
     {
 	float rate = 0.0;
 	bool ret = _fakeled->getRate(rate);
-	char buf[8];
+	std::ostringstream oss;
+	oss << rate;
 	answer = ret ? "OK " : "FAILED\n";
 	if(ret)
 	{
-	    sprintf(buf, answer.c_str(), rate);
+	    answer += oss.str();
+	    answer += '\n';
 	}
 	return true;
     }
     else 
     {
-	answer = "Wrong command format\nPlease repeat input";
+	answer = "Wrong command format\n";
+	return false;
     }
     return true;
 }

@@ -1,4 +1,6 @@
 #include "fakeled.h"
+#include <cstdlib>
+#include <cstring>
 
 Fakeled::Fakeled()
 {
@@ -26,14 +28,17 @@ int Fakeled::setState(bool state)
 
 int Fakeled::setColor(std::string color)
 {
-    if(color != "green" || color != "blue" || color != "red")
-    {
-	return -1;
-    }
-    else
+    if((std::strcmp(color.c_str(), "green") == 0) ||
+	(std::strcmp(color.c_str(), "blue") == 0) ||
+	(std::strcmp(color.c_str(), "red") == 0))
     {
 	_color = color;
 	return 0;
+    }
+    else
+    {
+	
+	return -1;
     }
 }
 

@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <limits.h>
@@ -29,7 +30,7 @@ FifoServer::~FifoServer()
 
 int FifoServer::exec()
 {
-    const size_t size = 16;
+    const size_t size = 32;
     char buf[size];
     
     fprintf(stderr, "Fifo server running...\n");
@@ -48,24 +49,30 @@ int FifoServer::exec()
     
     FakeledParser parser(_fakeled);
     std::string answer;
-    char client_fifo[64];
  
     while(true)
-    {	
+    {
+	memset(buf, 0, sizeof(buf));
+	
 	if(read(server_fifo_fd, buf, sizeof(buf)) > 0)
 	{
-	    parser.parse(buf, answer);
-
-	    printf("%s - %s", buf, answer.c_str());
-//	sprintf(client_fifo, fifo_client, fifoData.client_pid);
-	
-	    int client_fifo_fd = open(client_fifo, O_WRONLY);
-	    if(client_fifo_fd != -1)
+	    answer.clear();
+	    
+	    if(parser.parse(buf, answer))
 	    {
-		write(client_fifo_fd, answer.c_str(), answer.length());
-		close(client_fifo_fd);
+		printf("Request: %sAnswer:%s\n", buf, answer.c_str());
+	
+		int client_fifo_fd = open(fifo_client, O_WRONLY);
+		if(client_fifo_fd != -1)
+		{
+		    write(client_fifo_fd, answer.c_str(), answer.length() + 1);
+		    close(client_fifo_fd);
+		}
 	    }
-//	    fread(fifo, answer.c_str());
+	    else
+	    {
+		printf("%s", answer.c_str());
+	    }
 	    fflush(stdout);
 	}
     }

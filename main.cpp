@@ -3,7 +3,7 @@
 
 int main(void)
 {
-    Fakeled fakeled;
+    Fakeled fakeled(true, "red", 3.0);
     FifoServer fifoserver(&fakeled);
     
     return fifoserver.exec();    
